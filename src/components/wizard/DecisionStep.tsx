@@ -1,0 +1,178 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import type { AuditedHook } from '@/lib/mock-registry';
+import { Shield, Rocket, Fuel, CheckCircle2, AlertTriangle } from 'lucide-react';
+
+interface DecisionStepProps {
+  auditedHook: AuditedHook | null;
+  deployChoice: 'existing' | 'custom' | null;
+  onSelectChoice: (choice: 'existing' | 'custom') => void;
+  gasEstimates: { existing: number | null; custom: number };
+  isMining: boolean;
+  create2Salt: string | null;
+  onStartMining: () => void;
+}
+
+export function DecisionStep({
+  auditedHook,
+  deployChoice,
+  onSelectChoice,
+  gasEstimates,
+  isMining,
+  create2Salt,
+  onStartMining,
+}: DecisionStepProps) {
+  const formatGas = (gas: number) => {
+    if (gas >= 1000000) {
+      return `~${(gas / 1000000).toFixed(1)}M gas`;
+    }
+    return `~${(gas / 1000).toFixed(0)}k gas`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {auditedHook ? (
+        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 cyber-glow">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-6 h-6 text-green-400" />
+            <div>
+              <p className="font-semibold text-green-400">Verified Audited Hook Found!</p>
+              <p className="text-sm text-muted-foreground">
+                {auditedHook.name} at{' '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                  {auditedHook.address.slice(0, 10)}...{auditedHook.address.slice(-8)}
+                </code>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Audited by {auditedHook.auditor}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-6 h-6 text-yellow-400" />
+            <div>
+              <p className="font-semibold text-yellow-400">No Audited Hook Found</p>
+              <p className="text-sm text-muted-foreground">
+                Your configuration requires a custom deployment
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Use Existing Option */}
+        <Card
+          className={cn(
+            'cursor-pointer transition-all duration-300 border-2',
+            auditedHook
+              ? deployChoice === 'existing'
+                ? 'border-primary bg-primary/5 cyber-glow'
+                : 'border-border hover:border-primary/50'
+              : 'opacity-50 cursor-not-allowed'
+          )}
+          onClick={() => auditedHook && onSelectChoice('existing')}
+        >
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-green-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Use On-chain Audited</CardTitle>
+                <CardDescription>Link to existing verified hook</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 text-sm">
+              <Fuel className="w-4 h-4 text-muted-foreground" />
+              <span className="text-green-400 font-mono">
+                {gasEstimates.existing ? formatGas(gasEstimates.existing) : 'N/A'}
+              </span>
+              <span className="text-muted-foreground">estimated</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Deploy Custom Option */}
+        <Card
+          className={cn(
+            'cursor-pointer transition-all duration-300 border-2',
+            deployChoice === 'custom'
+              ? 'border-secondary bg-secondary/5 cyber-glow-purple'
+              : 'border-border hover:border-secondary/50'
+          )}
+          onClick={() => onSelectChoice('custom')}
+        >
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
+                <Rocket className="w-6 h-6 text-secondary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Deploy New Custom</CardTitle>
+                <CardDescription>Create and deploy your own hook</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 text-sm">
+              <Fuel className="w-4 h-4 text-muted-foreground" />
+              <span className="text-orange-400 font-mono">
+                {formatGas(gasEstimates.custom)}
+              </span>
+              <span className="text-muted-foreground">estimated</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {deployChoice === 'custom' && (
+        <div className="space-y-4 pt-4 border-t border-border">
+          {isMining ? (
+            <div className="p-6 rounded-xl bg-secondary/10 border border-secondary/30 text-center">
+              <div className="animate-mining inline-block mb-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-secondary to-accent flex items-center justify-center">
+                  <Rocket className="w-8 h-8 text-secondary-foreground" />
+                </div>
+              </div>
+              <p className="text-lg font-semibold text-secondary">Mining CREATE2 Address...</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Finding optimal salt for deterministic deployment
+              </p>
+              <div className="flex justify-center gap-1 mt-4">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="w-2 h-2 rounded-full bg-secondary animate-pulse"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : create2Salt ? (
+            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+              <p className="text-sm font-semibold text-green-400 mb-2">CREATE2 Salt Generated</p>
+              <code className="block p-3 bg-muted rounded-lg text-xs font-mono break-all text-primary">
+                {create2Salt}
+              </code>
+            </div>
+          ) : (
+            <Button
+              onClick={onStartMining}
+              className="w-full bg-gradient-to-r from-secondary to-accent hover:opacity-90"
+            >
+              <Rocket className="w-4 h-4 mr-2" />
+              Start Address Mining
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
