@@ -24,6 +24,7 @@ import {
 import { SIMPLE_ERC20 } from "@/lib/token-artifacts";
 import { buildStandardJsonInput, verifyOnBlockscout } from "@/lib/blockscout-verify";
 import { getV4Addresses } from "@/lib/uniswap-v4-registry";
+import { chains } from "@/lib/wagmi-config";
 
 export interface PoolConfig {
   chainId: number;
@@ -47,6 +48,7 @@ export function PoolSelectStep({ config, onChange }: PoolSelectStepProps) {
   const { data: walletClient } = useWalletClient({ chainId: config.chainId });
   const publicClient = usePublicClient({ chainId: config.chainId });
   const registry = getV4Addresses(config.chainId);
+  const selectedChain = chains.find((chain) => chain.id === config.chainId);
 
   const [tokenName, setTokenName] = React.useState("Test Token");
   const [tokenSymbol, setTokenSymbol] = React.useState("TEST");
@@ -221,12 +223,16 @@ export function PoolSelectStep({ config, onChange }: PoolSelectStepProps) {
               setTokenDeployStatus("pending");
               setTokenVerifyStatus("idle");
               try {
+                if (!selectedChain) {
+                  throw new Error("Unsupported chain for token deployment.");
+                }
                 const decimals = Number(tokenDecimals || "18");
                 const supply = BigInt(tokenSupply || "0") * 10n ** BigInt(decimals);
                 const txHash = await walletClient.deployContract({
                   abi: SIMPLE_ERC20.abi,
                   bytecode: SIMPLE_ERC20.bytecode,
                   args: [tokenName, tokenSymbol, decimals, supply],
+                  chain: selectedChain,
                 });
                 setTokenTxHash(txHash);
                 const receipt = await publicClient.waitForTransactionReceipt({

@@ -18,6 +18,7 @@ import { LifiPanel } from "@/components/wizard/execute/LifiPanel";
 import {
   CheckCircle2,
   FileCode,
+  Info,
   Loader2,
   RefreshCw,
   Rocket,
