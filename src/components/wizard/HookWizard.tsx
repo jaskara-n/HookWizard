@@ -114,8 +114,22 @@ export function HookWizard() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-8 px-4 md:px-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen pt-20 pb-12 px-4 md:px-8 uniswap-hero">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col gap-3">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            HookWizard
+          </p>
+          <h1 className="text-3xl md:text-4xl font-semibold">
+            Build Uniswap v4 Hooks with Production UX
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl">
+            Configure pools, generate audited hooks, and deploy with a clean
+            execution flow. Designed for teams that need speed without sacrificing
+            safety.
+          </p>
+        </div>
+
         {/* Stepper */}
         <WizardStepper
           steps={STEPS}
@@ -124,8 +138,8 @@ export function HookWizard() {
         />
 
         {/* Content Card */}
-        <Card className="border-border/50 overflow-hidden">
-          <CardHeader className="border-b border-border/50 bg-muted/20">
+        <Card className="surface-card overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-muted/10">
             <CardTitle className="text-xl">
               Step {state.currentStep + 1}: {STEPS[state.currentStep].title}
             </CardTitle>

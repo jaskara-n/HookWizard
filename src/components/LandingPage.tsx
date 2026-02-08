@@ -46,13 +46,13 @@ const steps = [
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 uniswap-hero">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background Gradient */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/15 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
@@ -74,7 +74,7 @@ export function LandingPage() {
               </span>
             </motion.div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-semibold tracking-tight mb-6">
               Deploy Custom Hooks{" "}
               <span className="gradient-brand-text">in Minutes</span>
             </h1>
@@ -113,7 +113,7 @@ export function LandingPage() {
             transition={{ delay: 0.6, duration: 0.6 }}
             className="mt-20 max-w-3xl mx-auto"
           >
-            <div className="glass rounded-2xl p-6 shadow-xl">
+            <div className="surface-card p-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 {steps.map((step, index) => (
                   <motion.div
@@ -123,7 +123,7 @@ export function LandingPage() {
                     transition={{ delay: 0.8 + index * 0.1 }}
                     className="flex items-center gap-3"
                   >
-                    <div className="w-8 h-8 rounded-full gradient-brand flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full gradient-brand flex items-center justify-center text-white text-sm font-semibold">
                       {index + 1}
                     </div>
                     <span className="text-sm font-medium hidden sm:block">
@@ -163,7 +163,7 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group p-6 rounded-2xl border border-border bg-card hover:border-primary/50 transition-colors"
+                className="group p-6 rounded-2xl border border-border bg-card hover:border-primary/40 transition-colors shadow-sm"
               >
                 <div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <feature.icon className="w-6 h-6 text-white" />
@@ -189,7 +189,7 @@ export function LandingPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass rounded-3xl p-12"
+            className="surface-card p-12"
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Ready to Deploy?

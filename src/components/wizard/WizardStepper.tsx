@@ -14,7 +14,7 @@ interface WizardStepperProps {
 
 export function WizardStepper({ steps, currentStep, onStepClick }: WizardStepperProps) {
   return (
-    <div className="w-full px-4 py-6">
+    <div className="w-full px-2 py-4">
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = index < currentStep;
@@ -28,15 +28,15 @@ export function WizardStepper({ steps, currentStep, onStepClick }: WizardStepper
                 disabled={!isClickable}
                 className={cn(
                   'flex flex-col items-center gap-2 transition-all duration-300',
-                  isClickable && 'cursor-pointer hover:scale-105',
+                  isClickable && 'cursor-pointer hover:translate-y-[-2px]',
                   !isClickable && 'cursor-default'
                 )}
               >
                 <div
                   className={cn(
-                    'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 border-2',
-                    isCompleted && 'bg-primary text-primary-foreground border-primary cyber-glow',
-                    isCurrent && 'bg-transparent text-primary border-primary cyber-glow animate-pulse-glow',
+                    'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 border-2',
+                    isCompleted && 'bg-primary text-primary-foreground border-primary shadow-sm',
+                    isCurrent && 'bg-transparent text-primary border-primary shadow-sm',
                     !isCompleted && !isCurrent && 'bg-muted text-muted-foreground border-border'
                   )}
                 >
@@ -46,7 +46,7 @@ export function WizardStepper({ steps, currentStep, onStepClick }: WizardStepper
                   <p
                     className={cn(
                       'text-sm font-semibold transition-colors',
-                      isCurrent && 'text-primary cyber-glow-text',
+                      isCurrent && 'text-primary',
                       isCompleted && 'text-primary',
                       !isCurrent && !isCompleted && 'text-muted-foreground'
                     )}
@@ -63,7 +63,7 @@ export function WizardStepper({ steps, currentStep, onStepClick }: WizardStepper
                 <div className="flex-1 mx-4">
                   <div
                     className={cn(
-                      'h-0.5 transition-all duration-500',
+                      'h-[2px] transition-all duration-500 rounded-full',
                       index < currentStep
                         ? 'bg-gradient-to-r from-primary to-secondary'
                         : 'bg-border'
