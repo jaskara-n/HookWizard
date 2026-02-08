@@ -17,8 +17,6 @@ contract HookFactory {
     }
 
     function computeAddress(bytes32 salt, bytes32 initCodeHash) external view returns (address) {
-        return address(
-            uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, initCodeHash))))
-        );
+        return address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, initCodeHash)))));
     }
 }

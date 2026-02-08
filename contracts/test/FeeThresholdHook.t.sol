@@ -50,11 +50,8 @@ contract FeeThresholdHookTest is Test {
     }
 
     function _afterSwapStableDelta(int128 stableDelta) internal {
-        IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
-            zeroForOne: true,
-            amountSpecified: 0,
-            sqrtPriceLimitX96: 0
-        });
+        IPoolManager.SwapParams memory params =
+            IPoolManager.SwapParams({zeroForOne: true, amountSpecified: 0, sqrtPriceLimitX96: 0});
         BalanceDelta delta = toBalanceDelta(stableDelta, 0);
         vm.prank(address(manager));
         hook.afterSwap(address(this), key, params, delta, "");

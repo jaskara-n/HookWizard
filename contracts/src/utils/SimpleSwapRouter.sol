@@ -35,15 +35,10 @@ contract SimpleSwapRouter is PoolTestBase {
         if (amountIn == 0) revert InvalidAmount();
 
         IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
-            zeroForOne: zeroForOne,
-            amountSpecified: -int256(amountIn),
-            sqrtPriceLimitX96: sqrtPriceLimitX96
+            zeroForOne: zeroForOne, amountSpecified: -int256(amountIn), sqrtPriceLimitX96: sqrtPriceLimitX96
         });
 
-        delta = abi.decode(
-            manager.unlock(abi.encode(CallbackData(msg.sender, key, params, hookData))),
-            (BalanceDelta)
-        );
+        delta = abi.decode(manager.unlock(abi.encode(CallbackData(msg.sender, key, params, hookData))), (BalanceDelta));
 
         uint256 ethBalance = address(this).balance;
         if (ethBalance > 0) {

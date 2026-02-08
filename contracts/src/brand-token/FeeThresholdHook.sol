@@ -61,12 +61,11 @@ contract FeeThresholdHook is BaseHook {
         });
     }
 
-    function beforeSwap(
-        address,
-        PoolKey calldata,
-        IPoolManager.SwapParams calldata,
-        bytes calldata
-    ) external override returns (bytes4, BeforeSwapDelta, uint24) {
+    function beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
+        external
+        override
+        returns (bytes4, BeforeSwapDelta, uint24)
+    {
         _onlyPoolManager();
         return (BaseHook.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }

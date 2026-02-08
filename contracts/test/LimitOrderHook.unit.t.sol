@@ -482,8 +482,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         hook.setPoolCumulativeConsumedPerInput(poolId, normalized, true, ccons);
         hook.setPoolCumulativeOutputPerInput(poolId, normalized, true, cout);
 
-        (uint256 claimable, uint256 consumed) =
-            hook.getUpdatedUserOrder(poolKey, normalized, true, user1);
+        (uint256 claimable, uint256 consumed) = hook.getUpdatedUserOrder(poolKey, normalized, true, user1);
 
         assertEq(consumed, amount / 2);
         assertEq(claimable, expectedOut);

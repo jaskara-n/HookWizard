@@ -12,7 +12,9 @@ contract LimitOrderhookHarness is LimitOrderhook {
 
     uint256 public mockPrice;
 
-    constructor(IPoolManager manager, address treasury, IERC20 stablecoin) LimitOrderhook(manager, treasury, stablecoin) {}
+    constructor(IPoolManager manager, address treasury, IERC20 stablecoin)
+        LimitOrderhook(manager, treasury, stablecoin)
+    {}
 
     function setMockPrice(uint256 price) external {
         mockPrice = price;
@@ -22,12 +24,9 @@ contract LimitOrderhookHarness is LimitOrderhook {
         return mockPrice;
     }
 
-    function exposeCheckCrossedPriceLevels(
-        bytes32 poolId_,
-        uint256 oldPrice,
-        uint256 newPrice,
-        PoolKey calldata key
-    ) external {
+    function exposeCheckCrossedPriceLevels(bytes32 poolId_, uint256 oldPrice, uint256 newPrice, PoolKey calldata key)
+        external
+    {
         _checkCrossedPriceLevels(poolId_, oldPrice, newPrice, key);
     }
 

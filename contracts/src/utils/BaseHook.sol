@@ -27,12 +27,12 @@ abstract contract BaseHook is IHooks {
         return BaseHook.afterInitialize.selector;
     }
 
-    function beforeAddLiquidity(
-        address,
-        PoolKey calldata,
-        IPoolManager.ModifyLiquidityParams calldata,
-        bytes calldata
-    ) external virtual override returns (bytes4) {
+    function beforeAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+        external
+        virtual
+        override
+        returns (bytes4)
+    {
         _onlyPoolManager();
         return BaseHook.beforeAddLiquidity.selector;
     }
@@ -71,23 +71,22 @@ abstract contract BaseHook is IHooks {
         return (BaseHook.afterRemoveLiquidity.selector, BalanceDelta.wrap(0));
     }
 
-    function beforeSwap(
-        address,
-        PoolKey calldata,
-        IPoolManager.SwapParams calldata,
-        bytes calldata
-    ) external virtual override returns (bytes4, BeforeSwapDelta, uint24) {
+    function beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
+        external
+        virtual
+        override
+        returns (bytes4, BeforeSwapDelta, uint24)
+    {
         _onlyPoolManager();
         return (BaseHook.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }
 
-    function afterSwap(
-        address,
-        PoolKey calldata,
-        IPoolManager.SwapParams calldata,
-        BalanceDelta,
-        bytes calldata
-    ) external virtual override returns (bytes4, int128) {
+    function afterSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        external
+        virtual
+        override
+        returns (bytes4, int128)
+    {
         _onlyPoolManager();
         return (BaseHook.afterSwap.selector, 0);
     }

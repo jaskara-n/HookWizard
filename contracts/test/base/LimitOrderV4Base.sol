@@ -65,13 +65,8 @@ abstract contract LimitOrderV4Base is Test, UniswapV4Setup {
             Currency.unwrap(stableCur) < Currency.unwrap(tokenCur) ? (stableCur, tokenCur) : (tokenCur, stableCur);
         stableIsCurrency0 = Currency.unwrap(currency0) == address(stablecoin);
 
-        poolKey = PoolKey({
-            currency0: currency0,
-            currency1: currency1,
-            fee: 3000,
-            tickSpacing: 60,
-            hooks: IHooks(hookAddr)
-        });
+        poolKey =
+            PoolKey({currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(hookAddr)});
         poolId = PoolId.unwrap(poolKey.toId());
 
         // Fund this contract and add liquidity for swaps.

@@ -84,23 +84,20 @@ contract LimitOrderOnlyHook is BaseHook {
         });
     }
 
-    function beforeSwap(
-        address,
-        PoolKey calldata,
-        IPoolManager.SwapParams calldata,
-        bytes calldata
-    ) external override returns (bytes4, BeforeSwapDelta, uint24) {
+    function beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
+        external
+        override
+        returns (bytes4, BeforeSwapDelta, uint24)
+    {
         _onlyPoolManager();
         return (BaseHook.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }
 
-    function afterSwap(
-        address,
-        PoolKey calldata key,
-        IPoolManager.SwapParams calldata,
-        BalanceDelta,
-        bytes calldata
-    ) external override returns (bytes4, int128) {
+    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        external
+        override
+        returns (bytes4, int128)
+    {
         _onlyPoolManager();
 
         bytes32 poolId = _poolId(key);
@@ -123,12 +120,7 @@ contract LimitOrderOnlyHook is BaseHook {
         return (BaseHook.afterSwap.selector, 0);
     }
 
-    function placeLimitOrder(
-        PoolKey calldata key,
-        uint256 amount,
-        uint256 priceLimit,
-        bool isBuy
-    ) external payable {
+    function placeLimitOrder(PoolKey calldata key, uint256 amount, uint256 priceLimit, bool isBuy) external payable {
         if (amount == 0) revert InvalidAmount();
         if (priceLimit < PRICE_STEP) revert InvalidPriceLimit();
 
@@ -172,7 +164,8 @@ contract LimitOrderOnlyHook is BaseHook {
 
         for (uint256 i = 0; i < prices.length; i++) {
             uint256 normalizedPrice = _normalizePrice(prices[i]);
-            LimitOrders storage orders = isBuy ? buyOrders[poolId][normalizedPrice] : sellOrders[poolId][normalizedPrice];
+            LimitOrders storage orders =
+                isBuy ? buyOrders[poolId][normalizedPrice] : sellOrders[poolId][normalizedPrice];
 
             _updateUserAccounting(poolId, normalizedPrice, isBuy, msg.sender);
 
@@ -259,12 +252,11 @@ contract LimitOrderOnlyHook is BaseHook {
         return _priceFromSqrtPrice(sqrtPriceX96, stableIsCurrency0, stableDecimals, tokenDecimals);
     }
 
-    function _priceFromSqrtPrice(
-        uint160 sqrtPriceX96,
-        bool stableIsCurrency0,
-        uint8 stableDec,
-        uint8 tokenDec
-    ) internal pure returns (uint256) {
+    function _priceFromSqrtPrice(uint160 sqrtPriceX96, bool stableIsCurrency0, uint8 stableDec, uint8 tokenDec)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 numerator = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
         uint256 stableScale = 10 ** stableDec;
         uint256 tokenScale = 10 ** tokenDec;
@@ -291,12 +283,9 @@ contract LimitOrderOnlyHook is BaseHook {
         return false;
     }
 
-    function _checkCrossedPriceLevels(
-        bytes32 poolId,
-        uint256 oldPrice,
-        uint256 newPrice,
-        PoolKey calldata key
-    ) internal {
+    function _checkCrossedPriceLevels(bytes32 poolId, uint256 oldPrice, uint256 newPrice, PoolKey calldata key)
+        internal
+    {
         uint256 oldNormalized = _normalizePrice(oldPrice);
         uint256 newNormalized = _normalizePrice(newPrice);
 
