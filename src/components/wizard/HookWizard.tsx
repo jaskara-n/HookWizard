@@ -121,12 +121,12 @@ export function HookWizard() {
             HookWizard
           </p>
           <h1 className="text-3xl md:text-4xl font-semibold">
-            Build Uniswap v4 Hooks with Production UX
+            Build Uniswap v4 Hooks
           </h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl">
             Configure pools, generate audited hooks, and deploy with a clean
-            execution flow. Designed for teams that need speed without sacrificing
-            safety.
+            execution flow. Designed for teams that need speed without
+            sacrificing safety.
           </p>
         </div>
 
