@@ -39,6 +39,7 @@ import {
   LIMIT_ORDER_ONLY_HOOK,
   SIMPLE_SWAP_ROUTER,
 } from "@/lib/hook-artifacts";
+import { buildStandardJsonInput, verifyOnBlockscout } from "@/lib/blockscout-verify";
 import {
   encodeSqrtPriceX96,
   getLiquidityForAmounts,
@@ -115,6 +116,13 @@ export function useExecuteStep({
     null,
   );
 
+  const [txHistory, setTxHistory] = useState<
+    { label: string; hash: string; timestamp: number }[]
+  >([]);
+  const [verification, setVerification] = useState<
+    Record<string, { status: "idle" | "pending" | "success" | "error"; message?: string }>
+  >({});
+
   const [metrics, setMetrics] = useState<{
     sqrtPriceX96?: bigint;
     tick?: number;
@@ -124,6 +132,15 @@ export function useExecuteStep({
     feesAccrued?: bigint;
     executedOrders?: bigint;
   }>({});
+
+  const [token0Meta, setToken0Meta] = useState<{ symbol: string; name: string }>({
+    symbol: "TOKEN0",
+    name: "Token 0",
+  });
+  const [token1Meta, setToken1Meta] = useState<{ symbol: string; name: string }>({
+    symbol: "TOKEN1",
+    name: "Token 1",
+  });
 
   const [lookup, setLookup] = useState({
     tokenA: "",
@@ -176,6 +193,57 @@ export function useExecuteStep({
     console.groupCollapsed(`[HookWizard] ${label}`);
     console.log(payload);
     console.groupEnd();
+  };
+
+  const recordTx = (label: string, hash: string) => {
+    setTxHistory((prev) => [
+      { label, hash, timestamp: Date.now() },
+      ...prev,
+    ]);
+  };
+
+  const getBlockscoutUrl = () => registry?.blockscout || "";
+
+  const verifyContract = async (params: {
+    address: Address;
+    contractName: string;
+    sourceName: string;
+    metadata: {
+      compiler: { version: string };
+      language: string;
+      settings: Record<string, unknown>;
+      sources: Record<string, unknown>;
+    };
+    label: string;
+  }) => {
+    const baseUrl = getBlockscoutUrl();
+    if (!baseUrl) return;
+    try {
+      setVerification((prev) => ({
+        ...prev,
+        [params.label]: { status: "pending" },
+      }));
+      const input = await buildStandardJsonInput(params.metadata);
+      await verifyOnBlockscout({
+        baseUrl,
+        address: params.address,
+        contractName: params.contractName,
+        sourceName: params.sourceName,
+        compilerVersion: params.metadata.compiler.version,
+        input,
+      });
+      setVerification((prev) => ({
+        ...prev,
+        [params.label]: { status: "success" },
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Verification failed";
+      setVerification((prev) => ({
+        ...prev,
+        [params.label]: { status: "error", message },
+      }));
+      console.error("[HookWizard] verify failed", message);
+    }
   };
 
   const resolvedAddresses = {
@@ -272,6 +340,41 @@ export function useExecuteStep({
     loadDecimals();
   }, [publicClient, poolKey]);
 
+  useEffect(() => {
+    async function loadTokenMeta() {
+      if (!publicClient || !poolKey) return;
+      const resolveMeta = async (address: Address) => {
+        if (address === ZERO_ADDRESS) {
+          return { symbol: "ETH", name: "Ether" };
+        }
+        try {
+          const symbol = await readContract<string>({
+            address,
+            abi: ERC20_ABI,
+            functionName: "symbol",
+          });
+          const name = await readContract<string>({
+            address,
+            abi: ERC20_ABI,
+            functionName: "name",
+          });
+          return { symbol, name };
+        } catch {
+          return { symbol: "TOKEN", name: "Token" };
+        }
+      };
+
+      const [meta0, meta1] = await Promise.all([
+        resolveMeta(poolKey.currency0),
+        resolveMeta(poolKey.currency1),
+      ]);
+      setToken0Meta(meta0);
+      setToken1Meta(meta1);
+    }
+
+    loadTokenMeta();
+  }, [publicClient, poolKey]);
+
   const initCodeHash = useMemo(() => {
     if (
       !selectedHookArtifact ||
@@ -357,6 +460,7 @@ export function useExecuteStep({
         bytecode: HOOK_FACTORY.bytecode,
         args: [],
       });
+      recordTx("Deploy HookFactory", txHash);
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
       });
@@ -448,9 +552,19 @@ export function useExecuteStep({
         args: [minedSalt, initCode],
         gas: gasLimit,
       });
+      recordTx("Deploy Hook", txHash);
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       if (predictedHook) {
         onDeployedAddressChange(predictedHook);
+        if (selectedHookArtifact) {
+          await verifyContract({
+            address: predictedHook,
+            contractName: selectedHookArtifact.contractName,
+            sourceName: selectedHookArtifact.sourceName,
+            metadata: selectedHookArtifact.metadata,
+            label: "hook",
+          });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -486,6 +600,7 @@ export function useExecuteStep({
           functionName: "initializePool",
           args,
         });
+        recordTx("Initialize Pool", txHash);
         await publicClient.waitForTransactionReceipt({ hash: txHash });
       } else {
         logTx("initializePool (manager)", {
@@ -498,6 +613,7 @@ export function useExecuteStep({
           functionName: "initialize",
           args,
         });
+        recordTx("Initialize Pool", txHash);
         await publicClient.waitForTransactionReceipt({ hash: txHash });
       }
       setPoolInitStatus("success");
@@ -526,6 +642,7 @@ export function useExecuteStep({
           ),
         ],
       });
+      recordTx("Approve Permit2", approveHash);
       await publicClient.waitForTransactionReceipt({ hash: approveHash });
 
       logTx("permit2Approve", {
@@ -544,6 +661,7 @@ export function useExecuteStep({
           BigInt("0xffffffffffff"),
         ],
       });
+      recordTx("Permit2 Allowance", permitHash);
       await publicClient.waitForTransactionReceipt({ hash: permitHash });
     } catch (error) {
       console.error(error);
@@ -667,6 +785,7 @@ export function useExecuteStep({
         args: [unlockData, deadline],
         value,
       });
+      recordTx("Add Liquidity", txHash);
       await publicClient.waitForTransactionReceipt({ hash: txHash });
 
       setLiquidityStatus("success");
@@ -685,6 +804,7 @@ export function useExecuteStep({
         bytecode: SIMPLE_SWAP_ROUTER.bytecode,
         args: [poolManagerAddress],
       });
+      recordTx("Deploy Swap Router", txHash);
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
       });
@@ -716,6 +836,7 @@ export function useExecuteStep({
           ),
         ],
       });
+      recordTx("Approve Swap Token", approveHash);
       await publicClient.waitForTransactionReceipt({ hash: approveHash });
       setSwapApprovalStatus("success");
     } catch (error) {
@@ -757,6 +878,7 @@ export function useExecuteStep({
         args: [poolKey, swapZeroForOne, amountIn, sqrtPriceLimit, "0x"],
         value,
       });
+      recordTx("Swap", txHash);
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       setSwapStatus("success");
     } catch (error) {
@@ -857,6 +979,7 @@ export function useExecuteStep({
       executedOrders,
     });
   };
+
 
   const handleLookup = async () => {
     if (!publicClient || !stateViewAddress) return;
@@ -968,6 +1091,11 @@ export function useExecuteStep({
     // metrics
     metrics,
     refreshMetrics,
+    token0Meta,
+    token1Meta,
+    // tx + verify
+    txHistory,
+    verification,
     // lookup
     lookup,
     setLookup,

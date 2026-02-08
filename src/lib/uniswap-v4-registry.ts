@@ -9,6 +9,7 @@ export interface V4ChainAddresses {
   permit2?: Address;
   weth9?: Address;
   notes?: string;
+  blockscout?: string;
 }
 
 export const PERMIT2_ADDRESS =
@@ -21,6 +22,7 @@ export const V4_REGISTRY: Record<number, V4ChainAddresses> = {
     stateView: "0xe1dd9c3fa50edb962e442f60dfbc432e24537e4c",
     universalRouter: "0x3a9d48ab9751398bbfa63ad67599bb04e4bdf98b",
     permit2: PERMIT2_ADDRESS,
+    blockscout: "https://eth-sepolia.blockscout.com",
     notes: "Uniswap Foundation v4 test interface deployment (Sepolia)",
   },
 };

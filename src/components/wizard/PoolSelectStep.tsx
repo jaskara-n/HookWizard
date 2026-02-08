@@ -1,3 +1,4 @@
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +13,17 @@ import {
 } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Chain } from "viem";
+import { Button } from "@/components/ui/button";
+import { usePublicClient, useWalletClient } from "wagmi";
 import { ChainSelect } from "./ChainSelect";
 import {
   formatTokenDisplay,
   getCommonTokens,
   resolveTokenInput,
 } from "@/lib/tokens";
+import { SIMPLE_ERC20 } from "@/lib/token-artifacts";
+import { buildStandardJsonInput, verifyOnBlockscout } from "@/lib/blockscout-verify";
+import { getV4Addresses } from "@/lib/uniswap-v4-registry";
 
 export interface PoolConfig {
   chainId: number;
@@ -38,6 +44,24 @@ interface PoolSelectStepProps {
 }
 
 export function PoolSelectStep({ config, onChange }: PoolSelectStepProps) {
+  const { data: walletClient } = useWalletClient({ chainId: config.chainId });
+  const publicClient = usePublicClient({ chainId: config.chainId });
+  const registry = getV4Addresses(config.chainId);
+
+  const [tokenName, setTokenName] = React.useState("Test Token");
+  const [tokenSymbol, setTokenSymbol] = React.useState("TEST");
+  const [tokenDecimals, setTokenDecimals] = React.useState("18");
+  const [tokenSupply, setTokenSupply] = React.useState("1000000");
+  const [tokenDeployStatus, setTokenDeployStatus] = React.useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
+  const [deployedTokenAddress, setDeployedTokenAddress] = React.useState<string | null>(
+    null,
+  );
+  const [tokenTxHash, setTokenTxHash] = React.useState<string | null>(null);
+  const [tokenVerifyStatus, setTokenVerifyStatus] = React.useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
   const handleChainChange = (chain: Chain) => {
     const tokenAResolved = resolveTokenInput(config.tokenAInput, chain.id);
     const tokenBResolved = resolveTokenInput(config.tokenBInput, chain.id);
@@ -151,6 +175,139 @@ export function PoolSelectStep({ config, onChange }: PoolSelectStepProps) {
   return (
     <div className="space-y-8">
       <ChainSelect value={config.chainId} onChange={handleChainChange} />
+
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Deploy Token
+        </Label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label className="text-xs">Name</Label>
+            <Input
+              value={tokenName}
+              onChange={(e) => setTokenName(e.target.value)}
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Symbol</Label>
+            <Input
+              value={tokenSymbol}
+              onChange={(e) => setTokenSymbol(e.target.value)}
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Decimals</Label>
+            <Input
+              value={tokenDecimals}
+              onChange={(e) => setTokenDecimals(e.target.value)}
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Total Supply</Label>
+            <Input
+              value={tokenSupply}
+              onChange={(e) => setTokenSupply(e.target.value)}
+              className="font-mono text-xs"
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={async () => {
+              if (!walletClient || !publicClient) return;
+              setTokenDeployStatus("pending");
+              setTokenVerifyStatus("idle");
+              try {
+                const decimals = Number(tokenDecimals || "18");
+                const supply = BigInt(tokenSupply || "0") * 10n ** BigInt(decimals);
+                const txHash = await walletClient.deployContract({
+                  abi: SIMPLE_ERC20.abi,
+                  bytecode: SIMPLE_ERC20.bytecode,
+                  args: [tokenName, tokenSymbol, decimals, supply],
+                });
+                setTokenTxHash(txHash);
+                const receipt = await publicClient.waitForTransactionReceipt({
+                  hash: txHash,
+                });
+                if (receipt.contractAddress) {
+                  setDeployedTokenAddress(receipt.contractAddress);
+                  setTokenDeployStatus("success");
+                  if (registry?.blockscout) {
+                    setTokenVerifyStatus("pending");
+                    const input = await buildStandardJsonInput(SIMPLE_ERC20.metadata);
+                    await verifyOnBlockscout({
+                      baseUrl: registry.blockscout,
+                      address: receipt.contractAddress,
+                      contractName: SIMPLE_ERC20.contractName,
+                      sourceName: SIMPLE_ERC20.sourceName,
+                      compilerVersion: SIMPLE_ERC20.metadata.compiler.version,
+                      input,
+                    });
+                    setTokenVerifyStatus("success");
+                  }
+                }
+              } catch (error) {
+                console.error(error);
+                setTokenDeployStatus("error");
+                setTokenVerifyStatus("error");
+              }
+            }}
+          >
+            {tokenDeployStatus === "pending" ? "Deploying..." : "Deploy Token"}
+          </Button>
+          {deployedTokenAddress && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  handleTokenInputChange(deployedTokenAddress, "tokenAInput")
+                }
+              >
+                Use for Token A
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  handleTokenInputChange(deployedTokenAddress, "tokenBInput")
+                }
+              >
+                Use for Token B
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  handleTokenInputChange(deployedTokenAddress, "stablecoinInput")
+                }
+              >
+                Use as Stablecoin
+              </Button>
+            </>
+          )}
+        </div>
+        {deployedTokenAddress && (
+          <p className="text-xs text-muted-foreground">
+            Token Address: {deployedTokenAddress}
+          </p>
+        )}
+        {tokenTxHash && registry?.blockscout && (
+          <a
+            className="text-xs text-primary underline break-all"
+            href={`${registry.blockscout}/tx/${tokenTxHash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View Token Deploy Tx on Blockscout
+          </a>
+        )}
+        {tokenVerifyStatus !== "idle" && (
+          <p className="text-xs text-muted-foreground">
+            Verification: {tokenVerifyStatus}
+          </p>
+        )}
+      </div>
 
       <div className="space-y-3">
         <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">

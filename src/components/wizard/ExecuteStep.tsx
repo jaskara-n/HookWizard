@@ -101,6 +101,10 @@ export function ExecuteStep({
     handleSwap,
     metrics,
     refreshMetrics,
+    token0Meta,
+    token1Meta,
+    txHistory,
+    verification,
     lookup,
     setLookup,
     lookupResult,
@@ -133,6 +137,40 @@ export function ExecuteStep({
             </TabsList>
 
             <TabsContent value="deploy" className="space-y-6 pt-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-sm font-semibold">Latest Transactions</p>
+                </div>
+                {txHistory.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No transactions yet. Deploy or initialize to see hashes here.
+                  </p>
+                ) : (
+                  <div className="space-y-2 text-xs">
+                    {txHistory.slice(0, 6).map((tx) => (
+                      <div
+                        key={`${tx.label}-${tx.hash}`}
+                        className="p-3 rounded-lg bg-muted/40 flex flex-col gap-1"
+                      >
+                        <span className="font-semibold">{tx.label}</span>
+                        <span className="font-mono break-all">{tx.hash}</span>
+                        {registry?.blockscout && (
+                          <a
+                            className="text-primary underline break-all"
+                            href={`${registry.blockscout}/tx/${tx.hash}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            View on Blockscout
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Settings2 className="w-4 h-4 text-muted-foreground" />
@@ -255,10 +293,10 @@ export function ExecuteStep({
 
               {deployChoice === "custom" && selectedHookArtifact && (
                 <div className="space-y-3 border-t border-border/60 pt-4">
-                  <div className="flex items-center gap-2">
-                    <Rocket className="w-4 h-4 text-secondary" />
-                    <p className="text-sm font-semibold">Hook Deployment</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Rocket className="w-4 h-4 text-secondary" />
+                  <p className="text-sm font-semibold">Hook Deployment</p>
+                </div>
                   <p className="text-xs text-muted-foreground">
                     Hook addresses must include the v4 permission flags. We
                     handle the factory + salt mining automatically.
@@ -288,6 +326,27 @@ export function ExecuteStep({
                         Salt: {minedSalt}
                       </div>
                     )}
+                    {verification.hook && (
+                      <p className="text-xs text-muted-foreground">
+                        Verification:{" "}
+                        {verification.hook.status === "pending" && "pending"}
+                        {verification.hook.status === "success" && "verified"}
+                        {verification.hook.status === "error" &&
+                          `failed (${verification.hook.message})`}
+                      </p>
+                    )}
+                    {verification.hook?.status === "success" &&
+                      registry?.blockscout &&
+                      hookAddress !== ZERO_ADDRESS && (
+                        <a
+                          className="text-xs text-primary underline break-all"
+                          href={`${registry.blockscout}/address/${hookAddress}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View Verified Contract on Blockscout
+                        </a>
+                      )}
                   </div>
                 </div>
               )}
@@ -544,6 +603,18 @@ export function ExecuteStep({
                 <div className="p-3 rounded-lg bg-muted/40 text-xs">
                   <p className="text-muted-foreground">Pool Id</p>
                   <p className="font-mono break-all">{poolId ?? "-"}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/40 text-xs">
+                  <p className="text-muted-foreground">Token 0</p>
+                  <p className="font-mono break-all">
+                    {token0Meta.name} ({token0Meta.symbol}) [token0]
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/40 text-xs">
+                  <p className="text-muted-foreground">Token 1</p>
+                  <p className="font-mono break-all">
+                    {token1Meta.name} ({token1Meta.symbol}) [token1]
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 text-xs">
                   <p className="text-muted-foreground">Current Tick</p>
