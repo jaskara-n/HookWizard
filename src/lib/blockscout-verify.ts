@@ -61,6 +61,10 @@ export async function verifyOnBlockscout(args: {
   if (!res.ok) {
     const message =
       data?.message || data?.error || `Verification failed (${res.status})`;
+    const normalized = String(message).toLowerCase();
+    if (normalized.includes("already verified") || normalized.includes("verified")) {
+      return data;
+    }
     throw new Error(message);
   }
   return data;

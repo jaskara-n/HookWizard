@@ -6,7 +6,7 @@ import {
   NEW_DEPLOY_GAS_ESTIMATE,
 } from "@/lib/hook-registry";
 import type { PoolConfig } from "@/components/wizard/PoolSelectStep";
-import { mainnet } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 export interface WizardState {
   currentStep: number;
@@ -21,7 +21,7 @@ export interface WizardState {
 const initialState: WizardState = {
   currentStep: 0,
   poolConfig: {
-    chainId: mainnet.id,
+    chainId: sepolia.id,
     tokenAInput: "",
     tokenBInput: "",
     feeTier: 3000,
@@ -35,6 +35,7 @@ const initialState: WizardState = {
   flags: {
     feeThreshold: false,
     limitOrders: false,
+    arcSettlement: false,
   },
   agentPrompt: "",
   auditedHook: null,

@@ -176,6 +176,13 @@ export const HOOK_METRICS_ABI: Abi = [
     inputs: [{ name: "poolId", type: "bytes32" }],
     outputs: [{ name: "count", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "arcSettlementRequests",
+    stateMutability: "view",
+    inputs: [{ name: "poolId", type: "bytes32" }],
+    outputs: [{ name: "count", type: "uint256" }],
+  },
 ];
 
 export const SIMPLE_SWAP_ROUTER_ABI: Abi = [

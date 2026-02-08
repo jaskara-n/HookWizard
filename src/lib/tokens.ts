@@ -52,14 +52,14 @@ const EXTRA_TOKENS: Record<number, TokenInfo[]> = {
     {
       symbol: "USDC",
       name: "USD Coin",
-      address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-      chainId: base.id,
+      address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      chainId: sepolia.id,
     },
     {
       symbol: "WETH",
       name: "Wrapped Ether",
-      address: "0x4200000000000000000000000000000000000006",
-      chainId: base.id,
+      address: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+      chainId: sepolia.id,
     },
   ],
 };

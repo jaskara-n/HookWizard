@@ -2,6 +2,7 @@ import type { Abi, Hex } from "viem";
 import limitOrderHookArtifact from "../../contracts/out/LimitOrderhook.sol/LimitOrderhook.json";
 import limitOrderOnlyArtifact from "../../contracts/out/LimitOrderOnlyHook.sol/LimitOrderOnlyHook.json";
 import feeThresholdArtifact from "../../contracts/out/FeeThresholdHook.sol/FeeThresholdHook.json";
+import arcUsdcOnlyArtifact from "../../contracts/out/ArcUSDCOnlyHook.sol/ArcUSDCOnlyHook.json";
 import hookFactoryArtifact from "../../contracts/out/HookFactory.sol/HookFactory.json";
 import simpleSwapRouterArtifact from "../../contracts/out/SimpleSwapRouter.sol/SimpleSwapRouter.json";
 
@@ -40,6 +41,14 @@ export const FEE_THRESHOLD_HOOK: HookArtifact = {
   metadata: feeThresholdArtifact.metadata,
   sourceName: "src/brand-token/FeeThresholdHook.sol",
   contractName: "FeeThresholdHook",
+};
+
+export const ARC_USDC_ONLY_HOOK: HookArtifact = {
+  abi: arcUsdcOnlyArtifact.abi as Abi,
+  bytecode: arcUsdcOnlyArtifact.bytecode.object as Hex,
+  metadata: arcUsdcOnlyArtifact.metadata,
+  sourceName: "src/brand-token/ArcUSDCOnlyHook.sol",
+  contractName: "ArcUSDCOnlyHook",
 };
 
 export const HOOK_FACTORY: HookArtifact = {

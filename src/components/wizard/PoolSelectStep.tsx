@@ -292,6 +292,16 @@ export function PoolSelectStep({ config, onChange }: PoolSelectStepProps) {
             Token Address: {deployedTokenAddress}
           </p>
         )}
+        {deployedTokenAddress && registry?.blockscout && (
+          <a
+            className="text-xs text-primary underline break-all"
+            href={`${registry.blockscout}/address/${deployedTokenAddress}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View Token Contract on Blockscout
+          </a>
+        )}
         {tokenTxHash && registry?.blockscout && (
           <a
             className="text-xs text-primary underline break-all"

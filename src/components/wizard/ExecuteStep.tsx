@@ -10,20 +10,18 @@ import { Badge } from "@/components/ui/badge";
 
 import type { HookFlags, AuditedHook } from "@/lib/hook-registry";
 import type { PoolConfig } from "@/components/wizard/PoolSelectStep";
-import { isV4Supported } from "@/lib/uniswap-v4-registry";
 import { ZERO_ADDRESS } from "@/lib/uniswap-v4-utils";
 
 import { useExecuteStep } from "@/hooks/useExecuteStep";
+import { LifiPanel } from "@/components/wizard/execute/LifiPanel";
 
 import {
   CheckCircle2,
   FileCode,
-  Info,
   Loader2,
   RefreshCw,
   Rocket,
   Send,
-  Settings2,
   Wallet,
 } from "lucide-react";
 
@@ -52,10 +50,6 @@ export function ExecuteStep({
     isConnected,
     registry,
     resolvedAddresses,
-    addressOverrides,
-    setAddressOverrides,
-    showOverrides,
-    setShowOverrides,
     poolManagerAddress,
     positionManagerAddress,
     stateViewAddress,
@@ -105,6 +99,7 @@ export function ExecuteStep({
     token1Meta,
     txHistory,
     verification,
+    recordTx,
     lookup,
     setLookup,
     lookupResult,
@@ -134,6 +129,7 @@ export function ExecuteStep({
               <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
               <TabsTrigger value="swap">Swap</TabsTrigger>
               <TabsTrigger value="metrics">Metrics</TabsTrigger>
+              <TabsTrigger value="crosschain">Cross-Chain</TabsTrigger>
             </TabsList>
 
             <TabsContent value="deploy" className="space-y-6 pt-4">
@@ -155,14 +151,14 @@ export function ExecuteStep({
                       >
                         <span className="font-semibold">{tx.label}</span>
                         <span className="font-mono break-all">{tx.hash}</span>
-                        {registry?.blockscout && (
+                        {(tx.explorerBase || registry?.blockscout) && (
                           <a
                             className="text-primary underline break-all"
-                            href={`${registry.blockscout}/tx/${tx.hash}`}
+                            href={`${(tx.explorerBase || registry?.blockscout)}/tx/${tx.hash}`}
                             target="_blank"
                             rel="noreferrer"
                           >
-                            View on Blockscout
+                            View Transaction
                           </a>
                         )}
                       </div>
@@ -173,13 +169,8 @@ export function ExecuteStep({
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Settings2 className="w-4 h-4 text-muted-foreground" />
                   <p className="text-sm font-semibold">Registry Addresses</p>
-                  {isV4Supported(poolConfig.chainId) ? (
-                    <Badge variant="secondary">v4 ready</Badge>
-                  ) : (
-                    <Badge variant="outline">custom</Badge>
-                  )}
+                  <Badge variant="secondary">Auto</Badge>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2 text-xs">
                   <div className="p-3 rounded-lg bg-muted/40">
@@ -207,82 +198,6 @@ export function ExecuteStep({
                     </p>
                   </div>
                 </div>
-                {!isV4Supported(poolConfig.chainId) && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-2">
-                    <Info className="w-4 h-4" />
-                    This chain is not in the v4 registry. Provide custom
-                    addresses below.
-                  </p>
-                )}
-                {!isV4Supported(poolConfig.chainId) && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowOverrides((prev) => !prev)}
-                    >
-                      {showOverrides
-                        ? "Hide Advanced Overrides"
-                        : "Advanced Overrides"}
-                    </Button>
-                  </div>
-                )}
-                {showOverrides && !isV4Supported(poolConfig.chainId) && (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <Label className="text-xs">PoolManager</Label>
-                      <Input
-                        value={addressOverrides.poolManager}
-                        onChange={(e) =>
-                          setAddressOverrides((prev) => ({
-                            ...prev,
-                            poolManager: e.target.value,
-                          }))
-                        }
-                        className="font-mono text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">PositionManager</Label>
-                      <Input
-                        value={addressOverrides.positionManager}
-                        onChange={(e) =>
-                          setAddressOverrides((prev) => ({
-                            ...prev,
-                            positionManager: e.target.value,
-                          }))
-                        }
-                        className="font-mono text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">StateView</Label>
-                      <Input
-                        value={addressOverrides.stateView}
-                        onChange={(e) =>
-                          setAddressOverrides((prev) => ({
-                            ...prev,
-                            stateView: e.target.value,
-                          }))
-                        }
-                        className="font-mono text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Permit2</Label>
-                      <Input
-                        value={addressOverrides.permit2}
-                        onChange={(e) =>
-                          setAddressOverrides((prev) => ({
-                            ...prev,
-                            permit2: e.target.value,
-                          }))
-                        }
-                        className="font-mono text-xs"
-                      />
-                    </div>
-                  </div>
-                )}
                 {registry?.notes && (
                   <p className="text-xs text-muted-foreground flex items-center gap-2">
                     <Info className="w-4 h-4" />
@@ -656,6 +571,14 @@ export function ExecuteStep({
                     </p>
                   </div>
                 )}
+                {flags.arcSettlement && (
+                  <div className="p-3 rounded-lg bg-muted/40 text-xs">
+                    <p className="text-muted-foreground">Arc Settlement Requests</p>
+                    <p className="font-mono">
+                      {metrics.arcSettlementRequests?.toString() ?? "-"}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -734,6 +657,16 @@ export function ExecuteStep({
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="crosschain" className="space-y-6 pt-4">
+              <LifiPanel
+                defaultToAddress={poolConfig.treasuryAddress}
+                isTestnet={poolConfig.chainId !== 1}
+                onTx={(hash, explorerBase) => {
+                  recordTx("LI.FI Route", hash, explorerBase);
+                }}
+              />
             </TabsContent>
           </Tabs>
 

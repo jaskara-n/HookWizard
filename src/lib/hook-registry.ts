@@ -1,6 +1,7 @@
 export interface HookFlags {
   feeThreshold: boolean;
   limitOrders: boolean;
+  arcSettlement: boolean;
 }
 
 export interface AuditedHook {
@@ -20,7 +21,8 @@ export function queryHookRegistry(flags: HookFlags, chainId: number): AuditedHoo
       (hook) =>
         hook.chainId === chainId &&
         hook.flags.feeThreshold === flags.feeThreshold &&
-        hook.flags.limitOrders === flags.limitOrders,
+        hook.flags.limitOrders === flags.limitOrders &&
+        hook.flags.arcSettlement === flags.arcSettlement,
     ) ?? null
   );
 }

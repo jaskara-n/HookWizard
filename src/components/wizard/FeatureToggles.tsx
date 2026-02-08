@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { generateHookCode } from "@/lib/hook-code-generator";
 import type { HookFlags } from "@/lib/hook-registry";
-import { Percent, ListOrdered, Sparkles, AlertTriangle, CheckCircle2, FileCode } from "lucide-react";
+import { Percent, ListOrdered, Sparkles, AlertTriangle, CheckCircle2, FileCode, ShieldCheck } from "lucide-react";
 
 interface FeatureTogglesProps {
   flags: HookFlags;
@@ -28,6 +28,12 @@ const FEATURES = [
     description: 'Enable limit order functionality in the pool',
     icon: ListOrdered,
   },
+  {
+    key: 'arcSettlement' as const,
+    label: 'USDC-Only (Arc Settlement)',
+    description: 'Restrict pool to USDC pairs and emit Arc settlement events',
+    icon: ShieldCheck,
+  },
 ];
 
 export function FeatureToggles({
@@ -47,6 +53,24 @@ export function FeatureToggles({
   }, [flags, agentPrompt]);
 
   const handleToggle = (key: keyof HookFlags) => {
+    if (key === "arcSettlement") {
+      onFlagsChange({
+        feeThreshold: false,
+        limitOrders: false,
+        arcSettlement: !flags.arcSettlement,
+      });
+      return;
+    }
+
+    if (flags.arcSettlement) {
+      onFlagsChange({
+        ...flags,
+        arcSettlement: false,
+        [key]: true,
+      });
+      return;
+    }
+
     onFlagsChange({ ...flags, [key]: !flags[key] });
   };
 
@@ -70,6 +94,8 @@ export function FeatureToggles({
         {FEATURES.map((feature) => {
           const Icon = feature.icon;
           const isActive = flags[feature.key];
+          const isDisabled =
+            flags.arcSettlement && feature.key !== "arcSettlement";
 
           return (
             <div
@@ -107,6 +133,7 @@ export function FeatureToggles({
                 id={feature.key}
                 checked={isActive}
                 onCheckedChange={() => handleToggle(feature.key)}
+                disabled={isDisabled}
                 className="data-[state=checked]:bg-primary"
               />
             </div>

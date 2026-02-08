@@ -15,7 +15,6 @@ import type { PoolConfig } from "@/components/wizard/PoolSelectStep";
 import {
   getV4Addresses,
   getPermit2,
-  isV4Supported,
 } from "@/lib/uniswap-v4-registry";
 import {
   buildPoolKey,
@@ -35,6 +34,7 @@ import {
 import {
   FEE_THRESHOLD_HOOK,
   HOOK_FACTORY,
+  ARC_USDC_ONLY_HOOK,
   LIMIT_ORDER_HOOK,
   LIMIT_ORDER_ONLY_HOOK,
   SIMPLE_SWAP_ROUTER,
@@ -83,14 +83,6 @@ export function useExecuteStep({
 
   const registry = getV4Addresses(poolConfig.chainId);
 
-  const [addressOverrides, setAddressOverrides] = useState({
-    poolManager: "",
-    positionManager: "",
-    stateView: "",
-    permit2: "",
-  });
-  const [showOverrides, setShowOverrides] = useState(false);
-
   const [hookFactoryAddress, setHookFactoryAddress] = useState("");
   const [isMining, setIsMining] = useState(false);
   const [minedSalt, setMinedSalt] = useState<Hex | null>(null);
@@ -117,7 +109,7 @@ export function useExecuteStep({
   );
 
   const [txHistory, setTxHistory] = useState<
-    { label: string; hash: string; timestamp: number }[]
+    { label: string; hash: string; timestamp: number; explorerBase?: string }[]
   >([]);
   const [verification, setVerification] = useState<
     Record<string, { status: "idle" | "pending" | "success" | "error"; message?: string }>
@@ -131,6 +123,7 @@ export function useExecuteStep({
     feesDistributed?: bigint;
     feesAccrued?: bigint;
     executedOrders?: bigint;
+    arcSettlementRequests?: bigint;
   }>({});
 
   const [token0Meta, setToken0Meta] = useState<{ symbol: string; name: string }>({
@@ -161,16 +154,6 @@ export function useExecuteStep({
   }, [flags, agentPrompt]);
 
   useEffect(() => {
-    setAddressOverrides({
-      poolManager: registry?.poolManager ?? "",
-      positionManager: registry?.positionManager ?? "",
-      stateView: registry?.stateView ?? "",
-      permit2: registry?.permit2 ?? getPermit2(poolConfig.chainId),
-    });
-    setShowOverrides(!isV4Supported(poolConfig.chainId));
-  }, [poolConfig.chainId, registry]);
-
-  useEffect(() => {
     if (!swapRouterAddress && registry?.universalRouter) {
       setSwapRouterAddress(registry.universalRouter);
     }
@@ -195,9 +178,9 @@ export function useExecuteStep({
     console.groupEnd();
   };
 
-  const recordTx = (label: string, hash: string) => {
+  const recordTx = (label: string, hash: string, explorerBase?: string) => {
     setTxHistory((prev) => [
-      { label, hash, timestamp: Date.now() },
+      { label, hash, timestamp: Date.now(), explorerBase },
       ...prev,
     ]);
   };
@@ -253,26 +236,13 @@ export function useExecuteStep({
     permit2: registry?.permit2 ?? getPermit2(poolConfig.chainId),
   };
 
-  const poolManagerAddress = (
-    (showOverrides
-      ? addressOverrides.poolManager
-      : resolvedAddresses.poolManager) || ""
-  ) as Address;
-  const positionManagerAddress = (
-    (showOverrides
-      ? addressOverrides.positionManager
-      : resolvedAddresses.positionManager) || ""
-  ) as Address;
-  const stateViewAddress = (
-    (showOverrides ? addressOverrides.stateView : resolvedAddresses.stateView) ||
-    ""
-  ) as Address;
-  const permit2Address = (
-    (showOverrides ? addressOverrides.permit2 : resolvedAddresses.permit2) ||
-    getPermit2(poolConfig.chainId)
-  ) as Address;
+  const poolManagerAddress = (resolvedAddresses.poolManager || "") as Address;
+  const positionManagerAddress = (resolvedAddresses.positionManager || "") as Address;
+  const stateViewAddress = (resolvedAddresses.stateView || "") as Address;
+  const permit2Address = (resolvedAddresses.permit2 || getPermit2(poolConfig.chainId)) as Address;
 
   const selectedHookArtifact = useMemo(() => {
+    if (flags.arcSettlement) return ARC_USDC_ONLY_HOOK;
     if (flags.feeThreshold && flags.limitOrders) return LIMIT_ORDER_HOOK;
     if (flags.feeThreshold) return FEE_THRESHOLD_HOOK;
     if (flags.limitOrders) return LIMIT_ORDER_ONLY_HOOK;
@@ -385,22 +355,34 @@ export function useExecuteStep({
     const constructorArgs =
       selectedHookArtifact === LIMIT_ORDER_ONLY_HOOK
         ? [poolManagerAddress, poolConfig.stablecoinAddress]
-        : [
-            poolManagerAddress,
-            poolConfig.treasuryAddress,
-            poolConfig.stablecoinAddress,
-          ];
+        : selectedHookArtifact === ARC_USDC_ONLY_HOOK
+          ? [
+              poolManagerAddress,
+              poolConfig.stablecoinAddress,
+              poolConfig.treasuryAddress,
+            ]
+          : [
+              poolManagerAddress,
+              poolConfig.treasuryAddress,
+              poolConfig.stablecoinAddress,
+            ];
     const encodedArgs = encodeAbiParameters(
       selectedHookArtifact === LIMIT_ORDER_ONLY_HOOK
         ? [
             { name: "poolManager", type: "address" },
             { name: "stablecoin", type: "address" },
           ]
-        : [
-            { name: "poolManager", type: "address" },
-            { name: "treasury", type: "address" },
-            { name: "stablecoin", type: "address" },
-          ],
+        : selectedHookArtifact === ARC_USDC_ONLY_HOOK
+          ? [
+              { name: "poolManager", type: "address" },
+              { name: "stablecoin", type: "address" },
+              { name: "settlementReceiver", type: "address" },
+            ]
+          : [
+              { name: "poolManager", type: "address" },
+              { name: "treasury", type: "address" },
+              { name: "stablecoin", type: "address" },
+            ],
       constructorArgs as readonly Address[],
     );
     return keccak256(concatHex([selectedHookArtifact.bytecode, encodedArgs]));
@@ -421,22 +403,34 @@ export function useExecuteStep({
     const constructorArgs =
       selectedHookArtifact === LIMIT_ORDER_ONLY_HOOK
         ? [poolManagerAddress, poolConfig.stablecoinAddress]
-        : [
-            poolManagerAddress,
-            poolConfig.treasuryAddress,
-            poolConfig.stablecoinAddress,
-          ];
+        : selectedHookArtifact === ARC_USDC_ONLY_HOOK
+          ? [
+              poolManagerAddress,
+              poolConfig.stablecoinAddress,
+              poolConfig.treasuryAddress,
+            ]
+          : [
+              poolManagerAddress,
+              poolConfig.treasuryAddress,
+              poolConfig.stablecoinAddress,
+            ];
     const encodedArgs = encodeAbiParameters(
       selectedHookArtifact === LIMIT_ORDER_ONLY_HOOK
         ? [
             { name: "poolManager", type: "address" },
             { name: "stablecoin", type: "address" },
           ]
-        : [
-            { name: "poolManager", type: "address" },
-            { name: "treasury", type: "address" },
-            { name: "stablecoin", type: "address" },
-          ],
+        : selectedHookArtifact === ARC_USDC_ONLY_HOOK
+          ? [
+              { name: "poolManager", type: "address" },
+              { name: "stablecoin", type: "address" },
+              { name: "settlementReceiver", type: "address" },
+            ]
+          : [
+              { name: "poolManager", type: "address" },
+              { name: "treasury", type: "address" },
+              { name: "stablecoin", type: "address" },
+            ],
       constructorArgs as readonly Address[],
     );
     return concatHex([selectedHookArtifact.bytecode, encodedArgs]);
@@ -895,6 +889,7 @@ export function useExecuteStep({
     let feesDistributed: bigint | undefined;
     let feesAccrued: bigint | undefined;
     let executedOrders: bigint | undefined;
+    let arcSettlementRequests: bigint | undefined;
 
     logTx("refreshMetrics", { poolId, hookAddress });
     try {
@@ -967,6 +962,19 @@ export function useExecuteStep({
           console.error(error);
         }
       }
+
+      if (flags.arcSettlement) {
+        try {
+          arcSettlementRequests = await readContract<bigint>({
+            address: hookAddress,
+            abi: HOOK_METRICS_ABI,
+            functionName: "arcSettlementRequests",
+            args: [poolId],
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
     }
 
     setMetrics({
@@ -977,6 +985,7 @@ export function useExecuteStep({
       feesDistributed,
       feesAccrued,
       executedOrders,
+      arcSettlementRequests,
     });
   };
 
@@ -1028,10 +1037,6 @@ export function useExecuteStep({
     // registry
     registry,
     resolvedAddresses,
-    addressOverrides,
-    setAddressOverrides,
-    showOverrides,
-    setShowOverrides,
     poolManagerAddress,
     positionManagerAddress,
     stateViewAddress,
@@ -1096,6 +1101,7 @@ export function useExecuteStep({
     // tx + verify
     txHistory,
     verification,
+    recordTx,
     // lookup
     lookup,
     setLookup,

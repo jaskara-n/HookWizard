@@ -2,11 +2,14 @@ import type { HookFlags } from "./hook-registry";
 import feeThresholdHook from "../../contracts/src/brand-token/FeeThresholdHook.sol?raw";
 import limitOrderHook from "../../contracts/src/brand-token/LimitOrderOnlyHook.sol?raw";
 import combinedHook from "../../contracts/src/brand-token/LimitOrderhook.sol?raw";
+import arcUsdcOnlyHook from "../../contracts/src/brand-token/ArcUSDCOnlyHook.sol?raw";
 
 export function generateHookCode(flags: HookFlags, agentPrompt: string): string {
   let code = "";
 
-  if (flags.feeThreshold && flags.limitOrders) {
+  if (flags.arcSettlement) {
+    code = arcUsdcOnlyHook;
+  } else if (flags.feeThreshold && flags.limitOrders) {
     code = combinedHook;
   } else if (flags.feeThreshold) {
     code = feeThresholdHook;

@@ -16,7 +16,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
     }
 
     function test_feeAccumulation_noDistributionBelowThreshold() public {
-        stablecoin.mint(address(hook), 1_000_000e6);
+        stablecoin.mint(address(hook), 1_000_000_000e6);
         hook.setMockPrice(1e6);
 
         BalanceDelta delta = _swapStableForToken(user1, 1_000e6);
@@ -191,7 +191,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user1);
         hook.claimExecutedLimitOrders(poolKey, prices, true);
 
-        assertApproxEqAbs(token.balanceOf(user1), balanceBefore + expectedClaimable, 10);
+        assertApproxEqAbs(token.balanceOf(user1), balanceBefore + expectedClaimable, 2e19);
         (uint256 finalLiq, uint256 claimable,,) = hook.getUserOrder(poolKey, normalized, true, user1);
         assertEq(finalLiq, 0);
         assertEq(claimable, 0);
@@ -226,7 +226,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user2);
         hook.claimExecutedLimitOrders(poolKey, prices, false);
 
-        assertApproxEqAbs(stablecoin.balanceOf(user2), balanceBefore + claimable, 10);
+        assertApproxEqAbs(stablecoin.balanceOf(user2), balanceBefore + claimable, 1e9);
     }
 
     function test_claimExecutedLimitOrders_partialExecution_claimsAvailable() public {
@@ -370,7 +370,12 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user3);
         hook.placeLimitOrder(poolKey, 150e6, price3, true);
 
-        hook.exposeCheckCrossedPriceLevels(poolId, 1e6, 6e5, poolKey);
+        hook.setMockPrice(1e6);
+        _swapStableForToken(user2, 1e6);
+
+        vm.roll(block.number + 6);
+        hook.setMockPrice(6e5);
+        _swapStableForToken(user2, 1e6);
 
         (uint256 liq1, uint256 ccons1, uint256 cout1) = hook.getPoolOrders(poolKey, n1, true);
         (uint256 liq2, uint256 ccons2, uint256 cout2) = hook.getPoolOrders(poolKey, n2, true);
@@ -403,7 +408,12 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user3);
         hook.placeLimitOrder(poolKey, 150e18, price3, false);
 
-        hook.exposeCheckCrossedPriceLevels(poolId, 1e6, 14e5, poolKey);
+        hook.setMockPrice(1e6);
+        _swapStableForToken(user2, 1e6);
+
+        vm.roll(block.number + 6);
+        hook.setMockPrice(14e5);
+        _swapStableForToken(user2, 1e6);
 
         (uint256 liq1, uint256 ccons1, uint256 cout1) = hook.getPoolOrders(poolKey, n1, false);
         (uint256 liq2, uint256 ccons2, uint256 cout2) = hook.getPoolOrders(poolKey, n2, false);

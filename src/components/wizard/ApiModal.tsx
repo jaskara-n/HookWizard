@@ -24,7 +24,8 @@ const API_SCHEMA = `{
     },
     "flags": {
       "feeThreshold": "boolean",
-      "limitOrders": "boolean"
+      "limitOrders": "boolean",
+      "arcSettlement": "boolean"
     },
     "agentPrompt": "string (optional, natural language)",
     "deployStrategy": "'existing' | 'custom'",
