@@ -2,13 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=/HookWizard/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HookWizard</title>
   </head>
   <body>
     <script>
-      window.location.replace("/HookWizard/");
+      // SPA redirect for GitHub Pages: encode the path into a query param
+      // so index.html can restore it via history.replaceState
+      var seg = 1; // number of path segments to keep ("/HookWizard" = 1)
+      var l = window.location;
+      var path = l.pathname.split('/').slice(seg + 1).join('/');
+      var q = l.search || '';
+      var h = l.hash || '';
+      var redirect = l.pathname.split('/').slice(0, seg + 1).join('/') + '/';
+      if (path) redirect += '?p=/' + path + q + h;
+      else redirect += q + h;
+      l.replace(redirect);
     </script>
   </body>
 </html>
