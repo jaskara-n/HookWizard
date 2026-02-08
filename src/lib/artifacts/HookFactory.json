@@ -1,0 +1,211 @@
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "computeAddress",
+      "inputs": [
+        {
+          "name": "salt",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "initCodeHash",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "deploy",
+      "inputs": [
+        {
+          "name": "salt",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "creationCode",
+          "type": "bytes",
+          "internalType": "bytes"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "hook",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "HookDeployed",
+      "inputs": [
+        {
+          "name": "hook",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "salt",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "Create2Failed",
+      "inputs": []
+    }
+  ],
+  "bytecode": "0x6080604052348015600e575f80fd5b506105648061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c8063481286e614610038578063cdcb760a14610068575b5f80fd5b610052600480360381019061004d91906101dd565b610098565b60405161005f919061025a565b60405180910390f35b610082600480360381019061007d91906103af565b6100d4565b60405161008f919061025a565b60405180910390f35b5f60ff60f81b3084846040516020016100b494939291906104b9565b604051602081830303815290604052805190602001205f1c905092915050565b5f828251602084015ff590505f73ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1603610145576040517f04a5b3ee00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b8073ffffffffffffffffffffffffffffffffffffffff167f20723cf4e0ce4009ffa533c784c16cee0dfcbe4bdb0726213d600f19edc566138460405161018b9190610515565b60405180910390a292915050565b5f604051905090565b5f80fd5b5f80fd5b5f819050919050565b6101bc816101aa565b81146101c6575f80fd5b50565b5f813590506101d7816101b3565b92915050565b5f80604083850312156101f3576101f26101a2565b5b5f610200858286016101c9565b9250506020610211858286016101c9565b9150509250929050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f6102448261021b565b9050919050565b6102548161023a565b82525050565b5f60208201905061026d5f83018461024b565b92915050565b5f80fd5b5f80fd5b5f601f19601f8301169050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b6102c18261027b565b810181811067ffffffffffffffff821117156102e0576102df61028b565b5b80604052505050565b5f6102f2610199565b90506102fe82826102b8565b919050565b5f67ffffffffffffffff82111561031d5761031c61028b565b5b6103268261027b565b9050602081019050919050565b828183375f83830152505050565b5f61035361034e84610303565b6102e9565b90508281526020810184848401111561036f5761036e610277565b5b61037a848285610333565b509392505050565b5f82601f83011261039657610395610273565b5b81356103a6848260208601610341565b91505092915050565b5f80604083850312156103c5576103c46101a2565b5b5f6103d2858286016101c9565b925050602083013567ffffffffffffffff8111156103f3576103f26101a6565b5b6103ff85828601610382565b9150509250929050565b5f7fff0000000000000000000000000000000000000000000000000000000000000082169050919050565b5f819050919050565b61044e61044982610409565b610434565b82525050565b5f8160601b9050919050565b5f61046a82610454565b9050919050565b5f61047b82610460565b9050919050565b61049361048e8261023a565b610471565b82525050565b5f819050919050565b6104b36104ae826101aa565b610499565b82525050565b5f6104c4828761043d565b6001820191506104d48286610482565b6014820191506104e482856104a2565b6020820191506104f482846104a2565b60208201915081905095945050505050565b61050f816101aa565b82525050565b5f6020820190506105285f830184610506565b9291505056fea2646970667358221220e586e8458d75703535da1ee9630ddc9854485a2ae0e12c59bde7f5e7a715effd64736f6c634300081a0033",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.26+commit.8a97fa7a"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "type": "error",
+          "name": "Create2Failed"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "hook",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "bytes32",
+              "name": "salt",
+              "type": "bytes32",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "HookDeployed",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "salt",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "initCodeHash",
+              "type": "bytes32"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "computeAddress",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "salt",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "creationCode",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deploy",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "hook",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        "@ensdomains/=lib/v4-core/node_modules/@ensdomains/",
+        "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+        "@uniswap/v4-core/=lib/v4-core/",
+        "@uniswap/v4-periphery/=lib/v4-periphery/",
+        "ds-test/=lib/v4-core/lib/forge-std/lib/ds-test/src/",
+        "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+        "forge-gas-snapshot/=lib/v4-periphery/lib/permit2/lib/forge-gas-snapshot/src/",
+        "forge-std/=lib/forge-std/src/",
+        "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+        "hardhat/=lib/v4-core/node_modules/hardhat/",
+        "openzeppelin-contracts/=lib/openzeppelin-contracts/",
+        "permit2/=lib/v4-periphery/lib/permit2/",
+        "solmate/=lib/v4-core/lib/solmate/",
+        "v4-core/=lib/v4-core/src/",
+        "v4-periphery/=lib/v4-periphery/"
+      ],
+      "optimizer": {
+        "enabled": false,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/utils/HookFactory.sol": "HookFactory"
+      },
+      "evmVersion": "cancun",
+      "libraries": {}
+    },
+    "sources": {
+      "src/utils/HookFactory.sol": {
+        "keccak256": "0x45c16a3d2e0bd55eeb1dbe7a37a047f97b6e6de537e4b7446dc5a40e635d63a5",
+        "urls": [
+          "bzz-raw://159f40c7edabd1559c1a16d49b3620f8295873ae4bc4012990ae9d85189a55e1",
+          "dweb:/ipfs/Qme72st2PbnFhpdYy7cJYKBnqyNmNAYQnU8XbiihHr6Gvm"
+        ],
+        "license": "MIT"
+      }
+    },
+    "version": 1
+  }
+}

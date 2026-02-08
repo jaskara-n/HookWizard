@@ -1,5 +1,5 @@
 import type { Abi, Hex } from "viem";
-import simpleErc20Artifact from "../../contracts/out/SimpleERC20.sol/SimpleERC20.json";
+import simpleErc20Artifact from "./artifacts/SimpleERC20.json";
 
 export interface TokenArtifact {
   abi: Abi;
@@ -16,7 +16,7 @@ export interface TokenArtifact {
 
 export const SIMPLE_ERC20: TokenArtifact = {
   abi: simpleErc20Artifact.abi as Abi,
-  bytecode: simpleErc20Artifact.bytecode.object as Hex,
+  bytecode: simpleErc20Artifact.bytecode as Hex,
   metadata: simpleErc20Artifact.metadata,
   sourceName: "src/utils/SimpleERC20.sol",
   contractName: "SimpleERC20",
