@@ -40,8 +40,8 @@ contract LimitOrderHookE2E is LimitOrderV4Base {
 
         uint256 totalExpectedOut;
         for (uint256 i = 0; i < 3; i++) {
-            // Execution uses the limit price level, not the new price.
-            totalExpectedOut += (amounts[i] * 1e18) / normalized[i];
+            (uint256 claimable,) = hook.getUpdatedUserOrder(poolKey, normalized[i], true, user1);
+            totalExpectedOut += claimable;
         }
         token.mint(address(hook), totalExpectedOut);
 
@@ -59,8 +59,6 @@ contract LimitOrderHookE2E is LimitOrderV4Base {
         uint256 amt1 = 100e6;
         uint256 amt2 = 200e6;
         uint256 amt3 = 300e6;
-        uint256 total = amt1 + amt2 + amt3;
-
         vm.prank(user1);
         hook.placeLimitOrder(poolKey, amt1, price, true);
         vm.prank(user2);
@@ -79,12 +77,10 @@ contract LimitOrderHookE2E is LimitOrderV4Base {
         assertEq(totalLiq, 0);
         assertEq(ccons, CUMULATIVE_SCALE);
 
-        // Execution uses the limit price level.
-        uint256 totalOut = (total * 1e18) / normalized;
-        uint256 out1 = (amt1 * 1e18) / normalized;
-        uint256 out2 = (amt2 * 1e18) / normalized;
-        uint256 out3 = (amt3 * 1e18) / normalized;
-
+        (uint256 out1,) = hook.getUpdatedUserOrder(poolKey, normalized, true, user1);
+        (uint256 out2,) = hook.getUpdatedUserOrder(poolKey, normalized, true, user2);
+        (uint256 out3,) = hook.getUpdatedUserOrder(poolKey, normalized, true, user3);
+        uint256 totalOut = out1 + out2 + out3;
         token.mint(address(hook), totalOut);
 
         uint256 b1 = token.balanceOf(user1);

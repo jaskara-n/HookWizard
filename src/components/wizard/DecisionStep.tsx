@@ -172,7 +172,7 @@ export function DecisionStep({
             This preview updates in real time based on the features you select.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 h-[520px]">
+        <CardContent className="p-0 h-[640px]">
           <Editor
             height="100%"
             language="sol"

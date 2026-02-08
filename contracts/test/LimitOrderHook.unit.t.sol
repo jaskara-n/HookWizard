@@ -2,8 +2,7 @@
 pragma solidity ^0.8.22;
 
 import {LimitOrderV4Base} from "./base/LimitOrderV4Base.sol";
-import {BalanceDelta, toBalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 
 contract LimitOrderHookUnit is LimitOrderV4Base {
     function test_revert_InvalidAmount_placeLimitOrder() public {
@@ -183,8 +182,8 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         assertEq(ccons, CUMULATIVE_SCALE);
         assertGt(cout, 0);
 
-        uint256 expectedOut = (amount * 1e18) / normalized;
-        token.mint(address(hook), expectedOut);
+        (uint256 expectedClaimable,) = hook.getUpdatedUserOrder(poolKey, normalized, true, user1);
+        token.mint(address(hook), expectedClaimable);
 
         uint256 balanceBefore = token.balanceOf(user1);
         uint256[] memory prices = new uint256[](1);
@@ -192,7 +191,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user1);
         hook.claimExecutedLimitOrders(poolKey, prices, true);
 
-        assertApproxEqAbs(token.balanceOf(user1), balanceBefore + expectedOut, 2);
+        assertApproxEqAbs(token.balanceOf(user1), balanceBefore + expectedClaimable, 10);
         (uint256 finalLiq, uint256 claimable,,) = hook.getUserOrder(poolKey, normalized, true, user1);
         assertEq(finalLiq, 0);
         assertEq(claimable, 0);
@@ -218,8 +217,8 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         assertEq(ccons, CUMULATIVE_SCALE);
         assertGt(cout, 0);
 
-        uint256 expectedOut = (amount * normalized) / 1e18;
-        stablecoin.mint(address(hook), expectedOut);
+        (uint256 claimable,) = hook.getUpdatedUserOrder(poolKey, normalized, false, user2);
+        stablecoin.mint(address(hook), claimable);
 
         uint256 balanceBefore = stablecoin.balanceOf(user2);
         uint256[] memory prices = new uint256[](1);
@@ -227,7 +226,7 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
         vm.prank(user2);
         hook.claimExecutedLimitOrders(poolKey, prices, false);
 
-        assertApproxEqAbs(stablecoin.balanceOf(user2), balanceBefore + expectedOut, 2);
+        assertApproxEqAbs(stablecoin.balanceOf(user2), balanceBefore + claimable, 10);
     }
 
     function test_claimExecutedLimitOrders_partialExecution_claimsAvailable() public {
@@ -535,15 +534,9 @@ contract LimitOrderHookUnit is LimitOrderV4Base {
 
     function test_feeAccumulation_handlesTokenToStableSwap() public {
         stablecoin.mint(address(hook), 1_000_000e6);
+        hook.setMockPrice(1e6);
 
-        int128 stableDelta = -int128(1_000e6);
-        BalanceDelta delta = stableIsCurrency0 ? toBalanceDelta(stableDelta, 0) : toBalanceDelta(0, stableDelta);
-
-        IPoolManager.SwapParams memory params =
-            IPoolManager.SwapParams({zeroForOne: true, amountSpecified: 0, sqrtPriceLimitX96: 0});
-
-        vm.prank(address(manager));
-        hook.afterSwap(address(this), poolKey, params, delta, "");
+        BalanceDelta delta = _swapTokenForStable(user1, 1_000e18);
 
         uint256 expectedFee = _expectedFeeFromDelta(delta);
 

@@ -48,6 +48,20 @@ const EXTRA_TOKENS: Record<number, TokenInfo[]> = {
       chainId: base.id,
     },
   ],
+  [sepolia.id]: [
+    {
+      symbol: "USDC",
+      name: "USD Coin",
+      address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      chainId: base.id,
+    },
+    {
+      symbol: "WETH",
+      name: "Wrapped Ether",
+      address: "0x4200000000000000000000000000000000000006",
+      chainId: base.id,
+    },
+  ],
 };
 
 const SUPPORTED_CHAINS = [
@@ -94,7 +108,9 @@ export function resolveTokenInput(input: string, chainId: number) {
   }
 
   if (ADDRESS_REGEX.test(trimmed)) {
-    const byAddress = tokens.find((token) => token.address.toLowerCase() === lower);
+    const byAddress = tokens.find(
+      (token) => token.address.toLowerCase() === lower,
+    );
     return { address: trimmed as Address, token: byAddress };
   }
 

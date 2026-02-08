@@ -127,7 +127,7 @@ export function FeatureToggles({
             Live Hook Code (Updates With Toggles)
           </p>
         </div>
-        <div className="h-[480px]">
+        <div className="h-[640px]">
           <Editor
             height="100%"
             language="sol"

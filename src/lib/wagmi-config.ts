@@ -21,7 +21,7 @@ const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "";
 
 export const config = getDefaultConfig({
   appName: "HookWizard",
-  projectId: projectId || "YOUR_PROJECT_ID",
+  projectId: projectId || "00000000000000000000000000000000",
   chains,
   ssr: false,
 });
